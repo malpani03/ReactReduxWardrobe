@@ -7,13 +7,34 @@ import { SignOutUser } from '../../utils/firebase/firebase.util'; // Assuming th
 import { selectCurrentUser } from '../../store/user/user.selector';
 import CardIcon from '../../components/cart-icon/cart-icon';
 import CartDropDown from '../../components/cart-dropdown/cart-dropdown';
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 import "./navigation.scss";
 
 const Navigation = () => {
   // Accessing currentUser from UserContext
   const currentUser=useSelector(selectCurrentUser)
   const isCartOpen=useSelector(selectIsCartOpen);
+  const [alertOpen, setAlertOpen] = useState(false); // State for alert message
   
+
+  // Function to handle sign out
+  const handleSignOut = () => {
+    // Perform sign out operation
+    SignOutUser();
+
+    // Display success message
+    setAlertOpen(true);
+  };
+
+  // Function to close the alert
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setAlertOpen(false);
+  };
 
   return (
     <Fragment>
@@ -27,7 +48,7 @@ const Navigation = () => {
           </Link>
 
           {currentUser ? (
-            <span className='nav-link' onClick={SignOutUser}>
+            <span className='nav-link' onClick={handleSignOut}>
               SIGN OUT
             </span>
           ) : (
@@ -40,6 +61,21 @@ const Navigation = () => {
         {isCartOpen && <CartDropDown/>}
       </div>
       <Outlet />
+      {/* Success alert */}
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={handleCloseAlert}
+          severity="success"
+        >
+          Signed out successfully!
+        </MuiAlert>
+      </Snackbar>
     </Fragment>
   );
 };

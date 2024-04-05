@@ -2,50 +2,60 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   signInWithGooglePopup,
-  createUserDocumentFromAuth,
   signInAuthUserWithEmailAndPassword,
 } from "../../utils/firebase/firebase.util";
-import Button from "../Button/Button"; // Importing Button component
-import FormInput from "../form-input/form-input"; // Importing FormInput component
-import "./sign-in-form.scss"; // Importing styles for the SignInForm component
+import Button from "../Button/Button";
+import FormInput from "../form-input/form-input";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+import "./sign-in-form.scss";
 
-// Default form fields
 const defaultFormFields = {
   email: "",
   password: "",
 };
 
-// SignInForm component
 const SignInForm = () => {
-  const [formFields, setFormFields] = useState(defaultFormFields); // State for form fields
-  const { email, password } = formFields; // Destructuring email and password from formFields
+  const [formFields, setFormFields] = useState(defaultFormFields);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const { email, password } = formFields;
+  const navigate = useNavigate();
 
-  // Function to reset form fields
   const resetFormFields = () => {
     setFormFields(defaultFormFields);
   };
 
-  // Function to sign in with Google
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setAlertOpen(false);
+  };
+
   const SignInWithGoogle = async () => {
     try {
-      await signInWithGooglePopup(); // Calling signInWithGooglePopup function from firebase.util
+      await signInWithGooglePopup();
     } catch (error) {
       console.error("Error signing in with Google:", error);
     }
   };
 
-  // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
       const { user } = await signInAuthUserWithEmailAndPassword(
         email,
         password
-      ); // Signing in with email and password
+      );
       resetFormFields();
-      navigate('/'); // Resetting form fields after successful sign-in
+      setAlertMessage("Login successful!");
+      setAlertOpen(true);
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
     } catch (error) {
-      // Handling different authentication errors
       switch (error.code) {
         case "auth/user-not-found":
           console.log("Email does not exist");
@@ -54,20 +64,16 @@ const SignInForm = () => {
           alert("Incorrect password for the email");
           break;
         default:
-          console.log(error); 
+          console.log(error);
       }
     }
   };
 
-  // Function to handle input changes
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormFields({ ...formFields, [name]: value }); // Updating formFields state with new values
+    setFormFields({ ...formFields, [name]: value });
   };
 
-  const navigate=useNavigate();
-
-  // Rendering SignInForm component
   return (
     <div className="sign-in-container">
       <h2>Already Have an Account</h2>
@@ -98,14 +104,28 @@ const SignInForm = () => {
             type="button"
             buttonType="google"
             onClick={SignInWithGoogle}
-           >
+          >
             Google Sign In
           </Button>
-
         </div>
       </form>
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={handleCloseAlert}
+          severity="success"
+        >
+          {alertMessage}
+        </MuiAlert>
+      </Snackbar>
     </div>
   );
 };
 
-export default SignInForm; // Exporting SignInForm component
+export default SignInForm;
