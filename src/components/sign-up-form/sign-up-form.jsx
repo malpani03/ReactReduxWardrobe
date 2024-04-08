@@ -3,11 +3,13 @@ import {
   createAuthUserWithEmailAndPassword,
   createUserDocumentFromAuth,
 } from "../../utils/firebase/firebase.util";
+import { signUpStart } from '../../store/user/user.action';
 import Button from "../Button/Button";
 import FormInput from "../form-input/form-input";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 import "./sign-up-form.scss";
+import { useDispatch } from "react-redux";
 
 // Define default form field values
 const defaultFormFields = {
@@ -22,6 +24,7 @@ const SignUpForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const [alertOpen, setAlertOpen] = useState(false);
   const { displayName, email, password, confirmPassword } = formFields;
+  const dispatch=useDispatch();
 
   // Function to reset form fields to default values
   const resetFormFields = () => {
@@ -40,17 +43,8 @@ const SignUpForm = () => {
 
     try {
       // Create user with email and password
-      const { user } = await createAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
-
-      // Create user document with additional data
-      await createUserDocumentFromAuth(user, { displayName });
-
-      // Reset form fields after successful signup
+      dispatch(signUpStart(email, password, displayName));
       resetFormFields();
-
       // Display success message
       setAlertOpen(true);
     } catch (error) {

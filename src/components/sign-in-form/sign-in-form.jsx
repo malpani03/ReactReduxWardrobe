@@ -9,6 +9,8 @@ import FormInput from "../form-input/form-input";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
 import "./sign-in-form.scss";
+import { useDispatch } from "react-redux";
+import { googleSignInStart,emailSignInStart } from "../../store/user/user.action";
 
 const defaultFormFields = {
   email: "",
@@ -16,6 +18,7 @@ const defaultFormFields = {
 };
 
 const SignInForm = () => {
+  const dispatch=useDispatch();
   const [formFields, setFormFields] = useState(defaultFormFields);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -35,20 +38,13 @@ const SignInForm = () => {
   };
 
   const SignInWithGoogle = async () => {
-    try {
-      await signInWithGooglePopup();
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
-    }
+   dispatch(googleSignInStart());
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const { user } = await signInAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
+      dispatch(emailSignInStart(email, password));
       resetFormFields();
       setAlertMessage("Login successful!");
       setAlertOpen(true);
@@ -56,16 +52,7 @@ const SignInForm = () => {
         navigate("/");
       }, 3000);
     } catch (error) {
-      switch (error.code) {
-        case "auth/user-not-found":
-          console.log("Email does not exist");
-          break;
-        case "auth/invalid-credential":
-          alert("Incorrect password for the email");
-          break;
-        default:
-          console.log(error);
-      }
+      console.log('user sign in failed', error);
     }
   };
 
